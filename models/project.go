@@ -12,17 +12,17 @@ import (
 
 // Project represents a project in the system
 type Project struct {
-	ID          primitive.ObjectID
-	Owner       primitive.ObjectID
-	Title       string
-	Description string
-	Tags        []string
-	Category    string
-	Location    string
-	Votes       []primitive.ObjectID
+	ID            primitive.ObjectID   `json:"id,omitempty" bson:"_id,omitempty"`
+	Owner         primitive.ObjectID   `json:"owner,omitempty" bson:"owner,omitempty"`
+	Title         string               `json:"title,omitempty" bson:"title,omitempty"`
+	Description   string               `json:"description,omitempty" bson:"desc,omitempty"`
+	Tags          []string             `json:"tags,omitempty" bson:"tags,omitempty"`
+	Category      string               `json:"category,omitempty" bson:"category,omitempty"`
+	Location      string               `json:"location,omitempty" bson:"location,omitempty"`
+	Votes         []primitive.ObjectID `json:"votes,omitempty" bson:"votes,omitempty"`
+	Subscriptions []primitive.ObjectID `json:"subscriptions,omitempty" bson:"subscriptions,omitempty"`
+	Multimedia    []string             `json:"multimedia,omitempty" bson:"multimedia,omitempty"`
 	// Comments []Comment
-	Subscriptions []primitive.ObjectID
-	Multimedia    []string
 }
 
 // ProjectStore contains all the CRUD operations of Project
@@ -36,10 +36,16 @@ func NewProjectStore(database *mongo.Database) *ProjectStore {
 }
 
 // Create receives a project object and tries to insert it to the project store
-func (ps *ProjectStore) Create(p Project) (Project, error) {
+func (ps *ProjectStore) Create(p Project, ownerID string) (Project, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
+	oid, err := primitive.ObjectIDFromHex(ownerID)
+	if err != nil {
+		return Project{}, err
+	}
+
+	p.Owner = oid
 	result, err := ps.collection.InsertOne(ctx, p)
 	if err != nil {
 		return Project{}, err
@@ -73,9 +79,29 @@ func (ps *ProjectStore) GetByID(id string) (Project, error) {
 	return project, nil
 }
 
-// func (ps *ProjectStore) GetByTitle(title string) ([]Project, error) {
+func (ps *ProjectStore) GetByTitle(title string) ([]Project, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 
-// }
+	filter := bson.D{{"title", primitive.Regex{Pattern: ".*" + title + ".*", Options: ""}}}
+	cursor, err := ps.collection.Find(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+
+	projects := make([]Project, 0)
+	for cursor.Next(ctx) {
+		var project Project
+		err = cursor.Decode(&project)
+		if err != nil {
+			return nil, err
+		}
+		projects = append(projects, project)
+	}
+
+	cursor.Close(ctx)
+	return projects, nil
+}
 
 // func (ps *ProjectStore) GetByTags(tags []string) ([]Project, error) {
 
