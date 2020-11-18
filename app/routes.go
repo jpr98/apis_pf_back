@@ -29,7 +29,7 @@ func setProjectRoutes() {
 	projectsController := controllers.NewProjectsController(*projectStore)
 
 	appServer.router.GET("projects/:id", projectsController.GetByID)
-	appServer.router.GET("/projects/title", projectsController.SearchByTitle) // TODO: cambiar path
+	appServer.router.GET("/projects/search", projectsController.SearchProject)
 
 	p := appServer.router.Group("/projects")
 	p.Use(middleware.JWT([]byte("secret")))

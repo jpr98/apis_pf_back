@@ -46,20 +46,42 @@ func (p *Projects) GetByID(c echo.Context) error {
 	return c.JSON(http.StatusFound, project)
 }
 
-type titleSearch struct {
-	Title string `json:"title"`
+type projectSearch struct {
+	SearchType string `json:"search_type"`
+	Keywords   string `json:"keywords"`
 }
 
-// SearchByTitle handles looking for a project with a given title
-func (p *Projects) SearchByTitle(c echo.Context) error {
-	ts := new(titleSearch)
-	if err := c.Bind(&ts); err != nil {
+// SearchProject handles looking for a project with a given title
+func (p *Projects) SearchProject(c echo.Context) error {
+	ps := new(projectSearch)
+	if err := c.Bind(&ps); err != nil {
 		return c.String(http.StatusBadRequest, "Can't bind request body")
 	}
 
-	projects, err := p.projectStore.GetByTitle(ts.Title)
-	if err != nil {
-		return c.String(http.StatusNotFound, "No projects matching search")
+	var projects []models.Project
+	var err error
+
+	switch ps.SearchType {
+	case "title":
+		projects, err = p.projectStore.GetByTitle(ps.Keywords)
+		if err != nil {
+			return c.String(http.StatusNotFound, "No projects matching search")
+		}
+
+	case "tags":
+		projects, err = p.projectStore.GetByTitle(ps.Keywords) // TODO: Change to tags search
+		if err != nil {
+			return c.String(http.StatusNotFound, "No projects matching search")
+		}
+
+	case "category":
+		projects, err = p.projectStore.GetByTitle(ps.Keywords) // TODO: Change to category search
+		if err != nil {
+			return c.String(http.StatusNotFound, "No projects matching search")
+		}
+
+	default:
+		return c.String(http.StatusBadRequest, "Please provide a valid search type (title, tags, category)")
 	}
 
 	return c.JSON(http.StatusFound, projects)
