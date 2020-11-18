@@ -3,6 +3,7 @@ package models
 import (
 	"context"
 	"errors"
+	"strings"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -43,6 +44,10 @@ func (ps *ProjectStore) Create(p Project, ownerID string) (Project, error) {
 	oid, err := primitive.ObjectIDFromHex(ownerID)
 	if err != nil {
 		return Project{}, err
+	}
+
+	for index, tag := range p.Tags {
+		p.Tags[index] = strings.ToLower(tag)
 	}
 
 	p.Owner = oid
@@ -106,10 +111,26 @@ func (ps *ProjectStore) GetByTitle(title string) ([]Project, error) {
 
 // GetByTags returns all projects for a given set of tags
 func (ps *ProjectStore) GetByTags(tags []string) ([]Project, error) {
-	_, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	return nil, nil
+	cursor, err := ps.collection.Find(ctx, bson.D{{"tags", bson.D{{"$in", tags}}}})
+	if err != nil {
+		return nil, err
+	}
+
+	projects := make([]Project, 0)
+	for cursor.Next(ctx) {
+		var project Project
+		err = cursor.Decode(&project)
+		if err != nil {
+			return nil, err
+		}
+		projects = append(projects, project)
+	}
+
+	cursor.Close(ctx)
+	return projects, nil
 }
 
 // GetByCategory returns all projects for a given category
