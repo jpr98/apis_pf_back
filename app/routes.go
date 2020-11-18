@@ -8,6 +8,7 @@ import (
 
 func setRoutes() {
 	setUserRoutes()
+	setProjectRoutes()
 }
 
 func setUserRoutes() {
@@ -21,4 +22,16 @@ func setUserRoutes() {
 	u.Use(middleware.JWT([]byte("secret")))
 	u.GET("/:id", usersController.GetByID)
 	u.PATCH("/:id", usersController.Update)
+}
+
+func setProjectRoutes() {
+	projectStore := models.NewProjectStore(appServer.database.DB)
+	projectsController := controllers.NewProjectsController(*projectStore)
+
+	appServer.router.GET("projects/:id", projectsController.GetByID)
+	appServer.router.GET("/projects/title", projectsController.SearchByTitle) // TODO: cambiar path
+
+	p := appServer.router.Group("/projects")
+	p.Use(middleware.JWT([]byte("secret")))
+	p.POST("/new", projectsController.Create)
 }
