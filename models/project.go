@@ -172,10 +172,14 @@ func (ps *ProjectStore) Upvote(projectID string, userID string) error {
 		return err
 	}
 
-	update := bson.M{"$push": bson.M{"votes": uid}}
-	_, err = ps.collection.UpdateOne(ctx, bson.M{"_id": pid}, update)
+	update := bson.M{"$addToSet": bson.M{"votes": uid}}
+	result, err := ps.collection.UpdateOne(ctx, bson.M{"_id": pid}, update)
 	if err != nil {
 		return err
+	}
+
+	if result.MatchedCount == 0 {
+		return errors.New("No project found with given id")
 	}
 
 	return nil
