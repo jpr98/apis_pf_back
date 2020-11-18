@@ -156,3 +156,27 @@ func (ps *ProjectStore) GetByCategory(category string) ([]Project, error) {
 	cursor.Close(ctx)
 	return projects, nil
 }
+
+// Upvote appends a user to the list of votes of a project
+func (ps *ProjectStore) Upvote(projectID string, userID string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	pid, err := primitive.ObjectIDFromHex(projectID)
+	if err != nil {
+		return err
+	}
+
+	uid, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return err
+	}
+
+	update := bson.M{"$push": bson.M{"votes": uid}}
+	_, err = ps.collection.UpdateOne(ctx, bson.M{"_id": pid}, update)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

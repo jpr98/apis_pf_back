@@ -34,4 +34,5 @@ func setProjectRoutes() {
 	p := appServer.router.Group("/projects")
 	p.Use(middleware.JWT([]byte("secret")))
 	p.POST("/new", projectsController.Create)
+	p.POST("/:id/upvote", projectsController.UpvoteProject)
 }

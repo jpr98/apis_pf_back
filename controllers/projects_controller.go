@@ -83,3 +83,13 @@ func (p *Projects) SearchProject(c echo.Context) error {
 
 	return c.JSON(http.StatusFound, projects)
 }
+
+// UpvoteProject handles a user voting for a project
+func (p *Projects) UpvoteProject(c echo.Context) error {
+	id := c.Param("id")
+	userID := getTokenStringClaimByKey(c, "id")
+	if err := p.projectStore.Upvote(id, userID); err != nil {
+		return c.String(http.StatusBadRequest, "Couldn't upvote project")
+	}
+	return c.JSON(http.StatusOK, "")
+}
