@@ -59,8 +59,8 @@ func (u *Users) Update(c echo.Context) error {
 
 // AuthBody is the content for auth requests
 type AuthBody struct {
-	Email    string `json: "email"`
-	Password string `json: "password"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }
 
 // Login gives a user a token and logs the user in
