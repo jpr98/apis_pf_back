@@ -1,6 +1,8 @@
 package app
 
 import (
+	"os"
+
 	"github.com/jpr98/apis_pf_back/datastore"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -17,9 +19,15 @@ var appServer = server{}
 // StartServer configures and intialices the web server on port 8080
 func StartServer() {
 	configServer()
+
+	port := os.Getenv("PORT")
+	if port == "" {
+		appServer.router.Logger.Fatal("$PORT must be set")
+	}
+
 	setMiddlewares()
 	setRoutes()
-	appServer.router.Logger.Fatal(appServer.router.Start(":8080"))
+	appServer.router.Logger.Fatal(appServer.router.Start(":" + port))
 }
 
 func configServer() {
