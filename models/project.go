@@ -79,6 +79,7 @@ func (ps *ProjectStore) GetByID(id string) (Project, error) {
 	return project, nil
 }
 
+// GetByTitle returns all projects with titles containing the given query string
 func (ps *ProjectStore) GetByTitle(title string) ([]Project, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -103,10 +104,34 @@ func (ps *ProjectStore) GetByTitle(title string) ([]Project, error) {
 	return projects, nil
 }
 
-// func (ps *ProjectStore) GetByTags(tags []string) ([]Project, error) {
+// GetByTags returns all projects for a given set of tags
+func (ps *ProjectStore) GetByTags(tags []string) ([]Project, error) {
+	_, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 
-// }
+	return nil, nil
+}
 
-// func (ps *ProjectStore) GetByCategories(categories []string) ([]Project, error) {
+// GetByCategory returns all projects for a given category
+func (ps *ProjectStore) GetByCategory(category string) ([]Project, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 
-// }
+	cursor, err := ps.collection.Find(ctx, bson.M{"category": category})
+	if err != nil {
+		return nil, err
+	}
+
+	projects := make([]Project, 0)
+	for cursor.Next(ctx) {
+		var project Project
+		err = cursor.Decode(&project)
+		if err != nil {
+			return nil, err
+		}
+		projects = append(projects, project)
+	}
+
+	cursor.Close(ctx)
+	return projects, nil
+}

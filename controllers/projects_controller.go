@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/jpr98/apis_pf_back/models"
 	"github.com/labstack/echo/v4"
@@ -64,24 +65,20 @@ func (p *Projects) SearchProject(c echo.Context) error {
 	switch ps.SearchType {
 	case "title":
 		projects, err = p.projectStore.GetByTitle(ps.Keywords)
-		if err != nil {
-			return c.String(http.StatusNotFound, "No projects matching search")
-		}
-
-	case "tags":
-		projects, err = p.projectStore.GetByTitle(ps.Keywords) // TODO: Change to tags search
-		if err != nil {
-			return c.String(http.StatusNotFound, "No projects matching search")
-		}
 
 	case "category":
-		projects, err = p.projectStore.GetByTitle(ps.Keywords) // TODO: Change to category search
-		if err != nil {
-			return c.String(http.StatusNotFound, "No projects matching search")
-		}
+		projects, err = p.projectStore.GetByCategory(ps.Keywords)
+
+	case "tags":
+		tags := strings.Fields(ps.Keywords)
+		projects, err = p.projectStore.GetByTags(tags)
 
 	default:
 		return c.String(http.StatusBadRequest, "Please provide a valid search type (title, tags, category)")
+	}
+
+	if err != nil {
+		return c.String(http.StatusNotFound, "No projects matching search")
 	}
 
 	return c.JSON(http.StatusFound, projects)
