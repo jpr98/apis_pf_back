@@ -33,7 +33,10 @@ func StartServer() {
 func configServer() {
 	appServer.router = echo.New()
 	appServer.logger = appServer.router.Logger
-	database, err := datastore.NewDatastore(appServer.logger)
+
+	password := os.Getenv("MONGO_PASSWORD")
+	appServer.logger.Infof("Got PASSWORD from env: ", password)
+	database, err := datastore.NewDatastore(password, appServer.logger)
 	if err != nil {
 		appServer.logger.Fatal(err)
 	}
