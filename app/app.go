@@ -17,6 +17,8 @@ var appServer = server{}
 // StartServer configures and intialices the web server on port 8080
 func StartServer() {
 	configServer()
+	setMiddlewares()
+	setRoutes()
 	appServer.router.Logger.Fatal(appServer.router.Start(":8080"))
 }
 
