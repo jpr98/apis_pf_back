@@ -25,6 +25,7 @@ func StartServer() {
 		appServer.router.Logger.Fatal("$PORT must be set")
 	}
 
+	configDatabase()
 	setMiddlewares()
 	setRoutes()
 	appServer.router.Logger.Fatal(appServer.router.Start(":" + port))
