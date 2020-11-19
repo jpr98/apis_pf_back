@@ -44,5 +44,7 @@ func configServer() {
 }
 
 func setMiddlewares() {
-	appServer.router.Use(middleware.Logger())
+	appServer.router.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
+		Format: "method=${method}, uri=${uri}, status=${status}, latency=${latency_human}\n",
+	}))
 }
