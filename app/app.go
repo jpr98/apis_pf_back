@@ -33,10 +33,20 @@ func StartServer() {
 func configServer() {
 	appServer.router = echo.New()
 	appServer.logger = appServer.router.Logger
+}
 
+func configDatabase() {
+	var uri string
 	password := os.Getenv("MONGO_PASSWORD")
-	appServer.logger.Infof("Got PASSWORD from env: ", password)
-	database, err := datastore.NewDatastore(password, appServer.logger)
+	if password == "" {
+		// Connecting to local machine mongo instance
+		uri = "mongodb://localhost:27017"
+	} else {
+		// Connecting to Atlas mongo instance
+		uri = "mongodb+srv://pf-server:" + password + "@cluster0.7ihuj.mongodb.net/apis_pf_db?retryWrites=true&w=majority"
+	}
+
+	database, err := datastore.NewDatastore(uri, appServer.logger)
 	if err != nil {
 		appServer.logger.Fatal(err)
 	}
