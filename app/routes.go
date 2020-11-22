@@ -31,6 +31,7 @@ func setProjectRoutes() {
 	appServer.router.GET("projects/:id", projectsController.GetByID)
 	appServer.router.GET("/projects/search", projectsController.SearchProject)
 	appServer.router.GET("/projects/owned", projectsController.GetByOwner)
+	appServer.router.GET("/projects/voted", projectsController.GetVotedFor)
 
 	p := appServer.router.Group("/projects")
 	p.Use(middleware.JWT([]byte("secret")))

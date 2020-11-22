@@ -186,6 +186,36 @@ func (ps *ProjectStore) GetByOwnerID(ownerID string) ([]Project, error) {
 	return projects, nil
 }
 
+// GetVotedProjects returns the projects that a user has voted for
+func (ps *ProjectStore) GetVotedProjects(userID string) ([]Project, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	uid, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	query := bson.D{{"votes", bson.D{{"$in", []primitive.ObjectID{uid}}}}}
+	cursor, err := ps.collection.Find(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+
+	projects := make([]Project, 0)
+	for cursor.Next(ctx) {
+		var project Project
+		err = cursor.Decode(&project)
+		if err != nil {
+			return nil, err
+		}
+		projects = append(projects, project)
+	}
+
+	cursor.Close(ctx)
+	return projects, nil
+}
+
 // Vote appends or removes a user to the list of votes of a project
 func (ps *ProjectStore) Vote(projectID string, userID string, upvote bool) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
