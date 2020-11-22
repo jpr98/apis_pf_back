@@ -157,8 +157,8 @@ func (ps *ProjectStore) GetByCategory(category string) ([]Project, error) {
 	return projects, nil
 }
 
-// Upvote appends a user to the list of votes of a project
-func (ps *ProjectStore) Upvote(projectID string, userID string) error {
+// Vote appends or removes a user to the list of votes of a project
+func (ps *ProjectStore) Vote(projectID string, userID string, upvote bool) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -172,7 +172,13 @@ func (ps *ProjectStore) Upvote(projectID string, userID string) error {
 		return err
 	}
 
-	update := bson.M{"$addToSet": bson.M{"votes": uid}}
+	var updateAction string
+	if upvote {
+		updateAction = "$addToSet"
+	} else {
+		updateAction = "$pull"
+	}
+	update := bson.M{updateAction: bson.M{"votes": uid}}
 	result, err := ps.collection.UpdateOne(ctx, bson.M{"_id": pid}, update)
 	if err != nil {
 		return err

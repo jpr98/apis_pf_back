@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/jpr98/apis_pf_back/models"
@@ -84,11 +85,16 @@ func (p *Projects) SearchProject(c echo.Context) error {
 	return c.JSON(http.StatusFound, projects)
 }
 
-// UpvoteProject handles a user voting for a project
-func (p *Projects) UpvoteProject(c echo.Context) error {
+// VoteForProject handles a user voting or unvoting a project
+func (p *Projects) VoteForProject(c echo.Context) error {
 	id := c.Param("id")
+	upvoteStr := c.QueryParam("upvote")
+	upvote, err := strconv.ParseBool(upvoteStr)
+	if err != nil {
+		return c.String(http.StatusBadRequest, "Invalid query parameter")
+	}
 	userID := getTokenStringClaimByKey(c, "id")
-	if err := p.projectStore.Upvote(id, userID); err != nil {
+	if err := p.projectStore.Vote(id, userID, upvote); err != nil {
 		return c.String(http.StatusBadRequest, "Couldn't upvote project")
 	}
 	return c.JSON(http.StatusOK, "")
