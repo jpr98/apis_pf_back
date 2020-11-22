@@ -37,4 +37,5 @@ func setProjectRoutes() {
 	p.Use(middleware.JWT([]byte("secret")))
 	p.POST("/new", projectsController.Create)
 	p.POST("/:id/vote", projectsController.VoteForProject)
+	p.DELETE("/:id", projectsController.Delete)
 }

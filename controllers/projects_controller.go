@@ -130,3 +130,24 @@ func (p *Projects) VoteForProject(c echo.Context) error {
 	}
 	return c.JSON(http.StatusOK, "")
 }
+
+// Delete deletes a project permanently
+func (p *Projects) Delete(c echo.Context) error {
+	id := c.Param("id")
+	userID := getTokenStringClaimByKey(c, "id")
+
+	project, err := p.projectStore.GetByID(id)
+	if err != nil {
+		return c.String(http.StatusNotFound, err.Error())
+	}
+
+	if project.Owner.Hex() != userID {
+		return c.String(http.StatusUnauthorized, "You must be the project owner to delete it")
+	}
+
+	if err := p.projectStore.Delete(id); err != nil {
+		return c.String(http.StatusBadRequest, err.Error())
+	}
+
+	return c.JSON(http.StatusOK, "Project deleted")
+}

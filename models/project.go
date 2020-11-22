@@ -23,6 +23,7 @@ type Project struct {
 	Votes         []primitive.ObjectID `json:"votes,omitempty" bson:"votes,omitempty"`
 	Subscriptions []primitive.ObjectID `json:"subscriptions,omitempty" bson:"subscriptions,omitempty"`
 	Multimedia    []string             `json:"multimedia,omitempty" bson:"multimedia,omitempty"`
+	Views         int                  `json:"views,omitempty" bson:"views,omitempty"`
 	// Comments []Comment
 }
 
@@ -245,6 +246,28 @@ func (ps *ProjectStore) Vote(projectID string, userID string, upvote bool) error
 
 	if result.MatchedCount == 0 {
 		return errors.New("No project found with given id")
+	}
+
+	return nil
+}
+
+// Delete removes a project with a given id
+func (ps *ProjectStore) Delete(id string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	pid, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+
+	result, err := ps.collection.DeleteOne(ctx, bson.M{"_id": pid})
+	if err != nil {
+		return err
+	}
+
+	if result.DeletedCount == 0 {
+		return errors.New("No projects with id found")
 	}
 
 	return nil
