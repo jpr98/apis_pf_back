@@ -157,6 +157,35 @@ func (ps *ProjectStore) GetByCategory(category string) ([]Project, error) {
 	return projects, nil
 }
 
+// GetByOwnerID returns projects with a given owner ID
+func (ps *ProjectStore) GetByOwnerID(ownerID string) ([]Project, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	oid, err := primitive.ObjectIDFromHex(ownerID)
+	if err != nil {
+		return nil, err
+	}
+
+	cursor, err := ps.collection.Find(ctx, bson.M{"owner": oid})
+	if err != nil {
+		return nil, err
+	}
+
+	projects := make([]Project, 0)
+	for cursor.Next(ctx) {
+		var project Project
+		err = cursor.Decode(&project)
+		if err != nil {
+			return nil, err
+		}
+		projects = append(projects, project)
+	}
+
+	cursor.Close(ctx)
+	return projects, nil
+}
+
 // Vote appends or removes a user to the list of votes of a project
 func (ps *ProjectStore) Vote(projectID string, userID string, upvote bool) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)

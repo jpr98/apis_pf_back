@@ -85,6 +85,21 @@ func (p *Projects) SearchProject(c echo.Context) error {
 	return c.JSON(http.StatusFound, projects)
 }
 
+// GetByOwner returns all the projects a user owns
+func (p *Projects) GetByOwner(c echo.Context) error {
+	id := c.QueryParam("owner")
+	if id == "" {
+		id = getTokenStringClaimByKey(c, "id")
+	}
+
+	projects, err := p.projectStore.GetByOwnerID(id)
+	if err != nil {
+		return c.String(http.StatusInternalServerError, err.Error())
+	}
+
+	return c.JSON(http.StatusOK, projects)
+}
+
 // VoteForProject handles a user voting or unvoting a project
 func (p *Projects) VoteForProject(c echo.Context) error {
 	id := c.Param("id")
@@ -93,6 +108,7 @@ func (p *Projects) VoteForProject(c echo.Context) error {
 	if err != nil {
 		return c.String(http.StatusBadRequest, "Invalid query parameter")
 	}
+
 	userID := getTokenStringClaimByKey(c, "id")
 	if err := p.projectStore.Vote(id, userID, upvote); err != nil {
 		return c.String(http.StatusBadRequest, "Couldn't upvote project")
