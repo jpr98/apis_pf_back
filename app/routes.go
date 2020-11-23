@@ -16,7 +16,7 @@ func setUserRoutes() {
 	usersController := controllers.NewUsersController(*userStore)
 
 	appServer.router.POST("/signup", usersController.Create)
-	appServer.router.GET("/login", usersController.Login)
+	appServer.router.POST("/login", usersController.Login)
 
 	u := appServer.router.Group("/users")
 	u.Use(middleware.JWT([]byte("secret")))
@@ -29,9 +29,10 @@ func setProjectRoutes() {
 	projectsController := controllers.NewProjectsController(*projectStore)
 
 	appServer.router.GET("projects/:id", projectsController.GetByID)
-	appServer.router.GET("/projects/search", projectsController.SearchProject)
+	appServer.router.POST("/projects/search", projectsController.SearchProject)
 	appServer.router.GET("/projects/owned", projectsController.GetByOwner)
 	appServer.router.GET("/projects/voted", projectsController.GetVotedFor)
+	appServer.router.POST("/projects/:id/metrics/view", projectsController.View)
 
 	p := appServer.router.Group("/projects")
 	p.Use(middleware.JWT([]byte("secret")))

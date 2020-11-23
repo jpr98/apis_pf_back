@@ -151,3 +151,14 @@ func (p *Projects) Delete(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, "Project deleted")
 }
+
+// View increments a projects views
+func (p *Projects) View(c echo.Context) error {
+	id := c.Param("id")
+
+	if err := p.projectStore.View(id); err != nil {
+		return c.String(http.StatusBadRequest, err.Error())
+	}
+
+	return c.JSON(http.StatusAccepted, "Project views updated")
+}

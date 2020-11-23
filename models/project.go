@@ -52,6 +52,7 @@ func (ps *ProjectStore) Create(p Project, ownerID string) (Project, error) {
 	}
 
 	p.Owner = oid
+	p.Views = 0
 	result, err := ps.collection.InsertOne(ctx, p)
 	if err != nil {
 		return Project{}, err
@@ -256,17 +257,40 @@ func (ps *ProjectStore) Delete(id string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	pid, err := primitive.ObjectIDFromHex(id)
+	oid, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return err
 	}
 
-	result, err := ps.collection.DeleteOne(ctx, bson.M{"_id": pid})
+	result, err := ps.collection.DeleteOne(ctx, bson.M{"_id": oid})
 	if err != nil {
 		return err
 	}
 
 	if result.DeletedCount == 0 {
+		return errors.New("No projects with id found")
+	}
+
+	return nil
+}
+
+// View increments the views of a project by one
+func (ps *ProjectStore) View(id string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	oid, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+
+	update := bson.M{"$inc": bson.M{"views": 1}}
+	result, err := ps.collection.UpdateOne(ctx, bson.M{"_id": oid}, update)
+	if err != nil {
+		return err
+	}
+
+	if result.MatchedCount == 0 {
 		return errors.New("No projects with id found")
 	}
 
