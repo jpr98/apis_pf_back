@@ -17,10 +17,10 @@ type MongoDatastore struct {
 }
 
 // NewDatastore creates a new mongo datastore
-func NewDatastore(password string, log echo.Logger) (*MongoDatastore, error) {
+func NewDatastore(uri string, log echo.Logger) (*MongoDatastore, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	client, err := mongo.NewClient(options.Client().ApplyURI("mongodb+srv://pf-server:" + password + "@cluster0.7ihuj.mongodb.net/apis_pf_db?retryWrites=true&w=majority"))
+	client, err := mongo.NewClient(options.Client().ApplyURI(uri))
 	if err != nil {
 		return nil, err
 	}
