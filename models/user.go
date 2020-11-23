@@ -13,12 +13,16 @@ import (
 
 // User model represents a user on the system
 type User struct {
-	ID       primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
-	Name     string             `json:"name,omitempty" bson:"name,omitempty"`
-	Lastname string             `json:"lastname,omitempty" bson:"lastname,omitempty"`
-	Email    string             `json:"email,omitempty" bson:"email,omitempty"`
-	Password string             `json:"password,omitempty" bson:"password,omitempty"`
-	Status   string             `json:"status,omitempty" bson:"status,omitempty"`
+	ID        primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
+	Name      string             `json:"name,omitempty" bson:"name,omitempty"`
+	Lastname  string             `json:"lastname,omitempty" bson:"lastname,omitempty"`
+	Email     string             `json:"email,omitempty" bson:"email,omitempty"`
+	Password  string             `json:"password,omitempty" bson:"password,omitempty"`
+	Status    string             `json:"status,omitempty" bson:"status,omitempty"`
+	Avatar    string             `json:"avatar_url,omitempty" bson:"avatar,omitempty"`
+	Bio       string             `json:"bio,omitempty" bson:"bio,omitempty"`
+	Location  string             `json:"location,omitempty" bson:"location,omitempty"`
+	Birthdate string             `json:"birthdate,omitempty" bson:"birthdate,omitempty"`
 }
 
 // UserStore contains all the CRUD operations for the User model
