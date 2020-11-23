@@ -13,18 +13,21 @@ import (
 
 // Project represents a project in the system
 type Project struct {
-	ID            primitive.ObjectID   `json:"id,omitempty" bson:"_id,omitempty"`
-	Owner         primitive.ObjectID   `json:"owner,omitempty" bson:"owner,omitempty"`
-	Title         string               `json:"title,omitempty" bson:"title,omitempty"`
-	Description   string               `json:"description,omitempty" bson:"desc,omitempty"`
-	Tags          []string             `json:"tags,omitempty" bson:"tags,omitempty"`
-	Category      string               `json:"category,omitempty" bson:"category,omitempty"`
-	Location      string               `json:"location,omitempty" bson:"location,omitempty"`
-	Votes         []primitive.ObjectID `json:"votes,omitempty" bson:"votes,omitempty"`
-	Subscriptions []primitive.ObjectID `json:"subscriptions,omitempty" bson:"subscriptions,omitempty"`
-	Multimedia    []string             `json:"multimedia,omitempty" bson:"multimedia,omitempty"`
-	Views         int                  `json:"views,omitempty" bson:"views,omitempty"`
-	// Comments []Comment
+	ID          primitive.ObjectID   `json:"id,omitempty" bson:"_id,omitempty"`
+	Owner       primitive.ObjectID   `json:"owner,omitempty" bson:"owner,omitempty"`
+	Title       string               `json:"title,omitempty" bson:"title,omitempty"`
+	Subtitle    string               `json:"subtitle,omitempty" bson:"subtitle,omitempty"`
+	Description string               `json:"description,omitempty" bson:"desc,omitempty"`
+	Tags        []string             `json:"tags,omitempty" bson:"tags,omitempty"`
+	Category    string               `json:"category,omitempty" bson:"category,omitempty"`
+	Location    string               `json:"location,omitempty" bson:"location,omitempty"`
+	Votes       []primitive.ObjectID `json:"votes,omitempty" bson:"votes,omitempty"`
+	ImageURL    string               `json:"image_url,omitempty" bson:"image,omitempty"`
+	VideURL     string               `json:"video_url,omitempty" bson:"video,omitempty"`
+	Views       int                  `json:"views,omitempty" bson:"views,omitempty"`
+	// Comments []Comment `json:"comments,omitempty" bson:"comments,omitempty"`
+	// duration....
+	// Contributions []Contribution `json:"contributions,omitempty" bson:"contributions,omitempty"`
 }
 
 // ProjectStore contains all the CRUD operations of Project
