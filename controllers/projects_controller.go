@@ -162,3 +162,24 @@ func (p *Projects) View(c echo.Context) error {
 
 	return c.JSON(http.StatusAccepted, "Project views updated")
 }
+
+type commentRequest struct {
+	Text string `json:"text"`
+}
+
+// Comment handles adding a comment to a project
+func (p *Projects) Comment(c echo.Context) error {
+	id := c.Param("id")
+	user := getTokenStringClaimByKey(c, "id")
+
+	cr := new(commentRequest)
+	if err := c.Bind(cr); err != nil {
+		return c.String(http.StatusBadRequest, err.Error())
+	}
+
+	if err := p.projectStore.AddComment(id, user, cr.Text); err != nil {
+		return c.String(http.StatusNotFound, err.Error())
+	}
+
+	return c.JSON(http.StatusAccepted, "Comment successfully created")
+}

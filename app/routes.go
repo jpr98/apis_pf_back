@@ -39,4 +39,5 @@ func setProjectRoutes() {
 	p.POST("/new", projectsController.Create)
 	p.POST("/:id/vote", projectsController.VoteForProject)
 	p.DELETE("/:id", projectsController.Delete)
+	p.POST("/:id/comment", projectsController.Comment)
 }

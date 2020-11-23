@@ -25,19 +25,20 @@ type Project struct {
 	ImageURL    string               `json:"image_url,omitempty" bson:"image,omitempty"`
 	VideURL     string               `json:"video_url,omitempty" bson:"video,omitempty"`
 	Views       int                  `json:"views,omitempty" bson:"views,omitempty"`
-	// Comments []Comment `json:"comments,omitempty" bson:"comments,omitempty"`
+	Comments    []Comment            `json:"comments,omitempty" bson:"comments,omitempty"`
 	// duration....
 	// Contributions []Contribution `json:"contributions,omitempty" bson:"contributions,omitempty"`
 }
 
 // ProjectStore contains all the CRUD operations of Project
 type ProjectStore struct {
+	database   *mongo.Database
 	collection *mongo.Collection
 }
 
 // NewProjectStore creates a project store with a mongo database
 func NewProjectStore(database *mongo.Database) *ProjectStore {
-	return &ProjectStore{database.Collection("projects")}
+	return &ProjectStore{database, database.Collection("projects")}
 }
 
 // Create receives a project object and tries to insert it to the project store
@@ -86,6 +87,8 @@ func (ps *ProjectStore) GetByID(id string) (Project, error) {
 		return Project{}, err
 	}
 
+	ps.getCommentsAuthors(&project)
+
 	return project, nil
 }
 
@@ -107,6 +110,7 @@ func (ps *ProjectStore) GetByTitle(title string) ([]Project, error) {
 		if err != nil {
 			return nil, err
 		}
+		ps.getCommentsAuthors(&project)
 		projects = append(projects, project)
 	}
 
@@ -131,6 +135,7 @@ func (ps *ProjectStore) GetByTags(tags []string) ([]Project, error) {
 		if err != nil {
 			return nil, err
 		}
+		ps.getCommentsAuthors(&project)
 		projects = append(projects, project)
 	}
 
@@ -155,6 +160,7 @@ func (ps *ProjectStore) GetByCategory(category string) ([]Project, error) {
 		if err != nil {
 			return nil, err
 		}
+		ps.getCommentsAuthors(&project)
 		projects = append(projects, project)
 	}
 
@@ -184,6 +190,7 @@ func (ps *ProjectStore) GetByOwnerID(ownerID string) ([]Project, error) {
 		if err != nil {
 			return nil, err
 		}
+		ps.getCommentsAuthors(&project)
 		projects = append(projects, project)
 	}
 
@@ -214,6 +221,7 @@ func (ps *ProjectStore) GetVotedProjects(userID string) ([]Project, error) {
 		if err != nil {
 			return nil, err
 		}
+		ps.getCommentsAuthors(&project)
 		projects = append(projects, project)
 	}
 
@@ -298,4 +306,46 @@ func (ps *ProjectStore) View(id string) error {
 	}
 
 	return nil
+}
+
+// AddComment appends a comment to a project
+func (ps *ProjectStore) AddComment(id, authorID, text string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	pid, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+
+	uid, err := primitive.ObjectIDFromHex(authorID)
+	if err != nil {
+		return err
+	}
+
+	author := CommentAuthor{ID: uid}
+	comment := Comment{primitive.NewObjectID(), author, time.Now(), text}
+
+	update := bson.M{"$push": bson.M{"comments": comment}}
+	result, err := ps.collection.UpdateOne(ctx, bson.M{"_id": pid}, update)
+	if err != nil {
+		return err
+	}
+
+	if result.MatchedCount == 0 {
+		return errors.New("No project found with given id")
+	}
+
+	return nil
+}
+
+func (ps *ProjectStore) getCommentsAuthors(project *Project) {
+	for index, comment := range project.Comments {
+		userStore := NewUserStore(ps.database)
+		user, err := userStore.GetByID(comment.Author.ID.Hex())
+		if err != nil {
+			project.Comments[index].Author = CommentAuthor{user.ID, "Eliminado", "", ""}
+		}
+		project.Comments[index].Author = CommentAuthor{user.ID, user.Name, user.Lastname, user.Email} // TODO: Change to avatar
+	}
 }

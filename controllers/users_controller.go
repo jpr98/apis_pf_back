@@ -84,6 +84,8 @@ func (u *Users) Login(c echo.Context) error {
 
 	claims := token.Claims.(jwt.MapClaims)
 	claims["id"] = user.ID
+	claims["name"] = user.Name
+	claims["lastname"] = user.Lastname
 	claims["exp"] = time.Now().Add(72 * time.Hour).Unix()
 
 	t, err := token.SignedString([]byte("secret"))
