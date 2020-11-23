@@ -23,7 +23,7 @@ type Project struct {
 	Location    string               `json:"location,omitempty" bson:"location,omitempty"`
 	Votes       []primitive.ObjectID `json:"votes,omitempty" bson:"votes,omitempty"`
 	ImageURL    string               `json:"image_url,omitempty" bson:"image,omitempty"`
-	VideURL     string               `json:"video_url,omitempty" bson:"video,omitempty"`
+	VideoURL    string               `json:"video_url,omitempty" bson:"video,omitempty"`
 	Views       int                  `json:"views,omitempty" bson:"views,omitempty"`
 	Comments    []Comment            `json:"comments,omitempty" bson:"comments,omitempty"`
 	// duration....
