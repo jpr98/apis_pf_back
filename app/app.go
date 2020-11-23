@@ -2,6 +2,7 @@ package app
 
 import (
 	"os"
+	"net/http"
 
 	"github.com/jpr98/apis_pf_back/datastore"
 	"github.com/labstack/echo/v4"
@@ -58,4 +59,10 @@ func setMiddlewares() {
 	appServer.router.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
 		Format: "method=${method}, uri=${uri}, status=${status}, latency=${latency_human}\n",
 	}))
+	appServer.router.Use(middleware.CORSWithConfig(
+		middleware.CORSConfig{
+			AllowOrigins: []string{"http://localhost:3000"},
+			AllowMethods: []string{http.MethodGet, http.MethodPut, http.MethodPost, http.MethodDelete},
+			AllowCredentials: true,
+		}))
 }
