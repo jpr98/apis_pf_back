@@ -95,5 +95,6 @@ func (u *Users) Login(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, map[string]string{
 		"token": t,
+		"id": user.ID.Hex(),
 	})
 }
