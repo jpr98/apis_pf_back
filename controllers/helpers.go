@@ -6,7 +6,10 @@ import (
 )
 
 func getTokenStringClaimByKey(c echo.Context, key string) string {
-	user := c.Get("user").(*jwt.Token)
+	user, ok := c.Get("user").(*jwt.Token)
+	if !ok {
+		return ""
+	}
 	claims := user.Claims.(jwt.MapClaims)
 	value, ok := claims[key].(string)
 	if !ok {
