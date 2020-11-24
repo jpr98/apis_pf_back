@@ -70,7 +70,7 @@ func setMiddlewares() {
 	appServer.router.Use(middleware.CORSWithConfig(
 		middleware.CORSConfig{
 			AllowOrigins:     []string{"http://localhost:3000"},
-			AllowMethods:     []string{http.MethodGet, http.MethodPut, http.MethodPost, http.MethodDelete},
+			AllowMethods:     []string{http.MethodGet, http.MethodPut, http.MethodPost, http.MethodDelete, http.MethodPatch},
 			AllowCredentials: true,
 		}))
 }

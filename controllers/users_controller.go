@@ -68,9 +68,24 @@ func (u *Users) Create(c echo.Context) error {
 	return c.JSON(http.StatusCreated, createdUser)
 }
 
-// Update is not working, but should update a user with the request body
+// Update updates a user's info
 func (u *Users) Update(c echo.Context) error {
-	return c.String(http.StatusNotImplemented, "Implement me!")
+	eu := new(models.EditUser)
+	if err := c.Bind(eu); err != nil {
+		return c.String(http.StatusBadRequest, "Can't bind body to json")
+	}
+
+	id := c.Param("id")
+	if id != getTokenStringClaimByKey(c, "id") {
+		return c.String(http.StatusForbidden, "You can only update your own info")
+	}
+
+	err := u.userStore.Update(id, *eu)
+	if err != nil {
+		return c.String(http.StatusNotFound, err.Error())
+	}
+
+	return c.JSON(http.StatusAccepted, "Updated")
 }
 
 // AuthBody is the content for auth requests
