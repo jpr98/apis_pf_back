@@ -23,6 +23,10 @@ type User struct {
 	Bio       string             `json:"bio,omitempty" bson:"bio,omitempty"`
 	Location  string             `json:"location,omitempty" bson:"location,omitempty"`
 	Birthdate string             `json:"birthdate,omitempty" bson:"birthdate,omitempty"`
+
+	Projects            []Project `json:"projects,omitempty" bson:"-"`
+	ContributedProjects []Project `json:"contributed_projects,omitempty" bson:"-"`
+	VotedProjects       []Project `json:"voted_projects,omitempty" bson:"-"`
 }
 
 // UserStore contains all the CRUD operations for the User model
