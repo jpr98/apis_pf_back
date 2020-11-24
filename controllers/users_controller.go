@@ -20,6 +20,22 @@ func NewUsersController(us models.UserStore) Users {
 	return Users{userStore: us}
 }
 
+// ValidateToken checks if a token is valid
+func (u *Users) ValidateToken(c echo.Context) error {
+	tokenString := c.Param("token")
+
+	_, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		return []byte("secret"), nil
+	})
+	if err != nil {
+		return c.String(http.StatusUnauthorized, "Invalid token")
+	}
+
+	return c.JSON(http.StatusOK, map[string]string{
+		"message": "Valid token",
+	})
+}
+
 // GetByID returns a user by a given id
 func (u *Users) GetByID(c echo.Context) error {
 	id := c.Param("id")
@@ -95,6 +111,6 @@ func (u *Users) Login(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, map[string]string{
 		"token": t,
-		"id": user.ID.Hex(),
+		"id":    user.ID.Hex(),
 	})
 }
