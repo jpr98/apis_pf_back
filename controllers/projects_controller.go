@@ -183,3 +183,24 @@ func (p *Projects) Comment(c echo.Context) error {
 
 	return c.JSON(http.StatusAccepted, "Comment successfully created")
 }
+
+type contributionRequest struct {
+	Amount float32 `json:"amount"`
+}
+
+// Contribute handles adding a contribution to a project
+func (p *Projects) Contribute(c echo.Context) error {
+	id := c.Param("id")
+	user := getTokenStringClaimByKey(c, "id")
+
+	cr := new(contributionRequest)
+	if err := c.Bind(cr); err != nil {
+		return c.String(http.StatusBadRequest, err.Error())
+	}
+
+	if err := p.projectStore.AddContribution(id, user, cr.Amount); err != nil {
+		return c.String(http.StatusNotFound, err.Error())
+	}
+
+	return c.JSON(http.StatusAccepted, "Contribution successfully added")
+}
