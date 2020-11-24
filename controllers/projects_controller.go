@@ -50,7 +50,10 @@ func (p *Projects) GetByID(c echo.Context) error {
 
 type projectSearch struct {
 	SearchType string `json:"search_type"`
-	Keywords   string `json:"keywords"`
+	Title      string `json:"title,omitempty"`
+	Category   string `json:"category,omitempty"`
+	Tags       string `json:"tags,omitempty"`
+	Order      string `json:"order,omitempty"`
 }
 
 // SearchProject handles looking for a project with a given title
@@ -65,14 +68,17 @@ func (p *Projects) SearchProject(c echo.Context) error {
 
 	switch ps.SearchType {
 	case "title":
-		projects, err = p.projectStore.GetByTitle(ps.Keywords)
+		projects, err = p.projectStore.GetByTitle(ps.Title)
 
 	case "category":
-		projects, err = p.projectStore.GetByCategory(ps.Keywords)
+		projects, err = p.projectStore.GetByCategory(ps.Category)
 
 	case "tags":
-		tags := strings.Fields(ps.Keywords)
+		tags := strings.Fields(ps.Tags)
 		projects, err = p.projectStore.GetByTags(tags)
+
+	case "full":
+		projects, err = p.projectStore.GetFullSearch(ps.Title, ps.Category, ps.Order)
 
 	default:
 		return c.String(http.StatusBadRequest, "Please provide a valid search type (title, tags, category)")
