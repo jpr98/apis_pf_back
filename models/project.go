@@ -161,10 +161,17 @@ func (ps *ProjectStore) GetFullSearch(title, category, order string) ([]Project,
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	query := bson.M{"$and": bson.A{
-		bson.M{"title": primitive.Regex{Pattern: ".*" + title + ".*", Options: ""}},
-		bson.M{"category": category},
-	}}
+	var query bson.M
+	if category != "todos" {
+		query = bson.M{"$and": bson.A{
+			bson.M{"title": primitive.Regex{Pattern: ".*" + title + ".*", Options: ""}},
+			bson.M{"category": category},
+		}}
+	} else {
+		query = bson.M{"$and": bson.A{
+			bson.M{"title": primitive.Regex{Pattern: ".*" + title + ".*", Options: ""}},
+		}}
+	}
 
 	options := &options.FindOptions{}
 	switch order {
