@@ -103,6 +103,43 @@ func (us *UserStore) GetByEmail(email string) (User, error) {
 	return user, nil
 }
 
+// EditUser helps while editing a users' info
+type EditUser struct {
+	Name      string `json:"name,omitempty"`
+	Location  string `json:"location,omitempty"`
+	Birthdate string `json:"birthdate,omitempty"`
+	Avatar    string `json:"avatar,omitempty"`
+	Bio       string `json:"bio,omitempty"`
+}
+
+// Update updates a users info
+func (us *UserStore) Update(id string, editUser EditUser) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	user, err := us.GetByID(id)
+	if err != nil {
+		return err
+	}
+
+	user.Name = editUser.Name
+	user.Location = editUser.Location
+	user.Birthdate = editUser.Birthdate
+	user.Avatar = editUser.Avatar
+	user.Bio = editUser.Bio
+
+	result, err := us.collection.ReplaceOne(ctx, bson.M{"_id": user.ID}, user)
+	if err != nil {
+		return err
+	}
+
+	if result.MatchedCount == 0 {
+		return errors.New("No user with given id")
+	}
+
+	return nil
+}
+
 func generatePassword(plainTextPassword string) (string, error) {
 	bytePassword, err := bcrypt.GenerateFromPassword([]byte(plainTextPassword), bcrypt.DefaultCost)
 	if err != nil {
