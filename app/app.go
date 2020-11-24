@@ -12,6 +12,7 @@ import (
 type server struct {
 	router   *echo.Echo
 	database *datastore.MongoDatastore
+	storage  *datastore.StorageDatastore
 	logger   echo.Logger
 }
 
@@ -53,6 +54,13 @@ func configDatabase() {
 		appServer.logger.Fatal(err)
 	}
 	appServer.database = database
+
+	bucket := "apis-pf-bucket"
+	storage, err := datastore.NewStorageDatastore(bucket, appServer.logger)
+	if err != nil {
+		appServer.logger.Fatal(err)
+	}
+	appServer.storage = storage
 }
 
 func setMiddlewares() {
@@ -62,7 +70,11 @@ func setMiddlewares() {
 	appServer.router.Use(middleware.CORSWithConfig(
 		middleware.CORSConfig{
 			AllowOrigins:     []string{"http://localhost:3000"},
+<<<<<<< HEAD
 			AllowMethods:     []string{http.MethodGet, http.MethodPut, http.MethodPost, http.MethodDelete, http.MethodPatch},
+=======
+			AllowMethods:     []string{http.MethodGet, http.MethodPut, http.MethodPost, http.MethodDelete},
+>>>>>>> main
 			AllowCredentials: true,
 		}))
 }
