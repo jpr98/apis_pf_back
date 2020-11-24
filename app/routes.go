@@ -17,6 +17,7 @@ func setUserRoutes() {
 
 	appServer.router.POST("/signup", usersController.Create)
 	appServer.router.POST("/login", usersController.Login)
+	appServer.router.GET("/validate/:token", usersController.ValidateToken)
 
 	u := appServer.router.Group("/users")
 	u.Use(middleware.JWT([]byte("secret")))
