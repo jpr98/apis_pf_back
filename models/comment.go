@@ -16,8 +16,7 @@ type Comment struct {
 
 // CommentAuthor helps model a user inside a comment
 type CommentAuthor struct {
-	ID       primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
-	Name     string             `json:"name,omitempty" bson:"name,omitempty"`
-	Lastname string             `json:"lastname,omitempty" bson:"lastname,omitempty"`
-	Avatar   string             `json:"avatar,omitempty" bson:"avatar_url,omitempty"`
+	ID     primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
+	Name   string             `json:"name,omitempty" bson:"name,omitempty"`
+	Avatar string             `json:"avatar,omitempty" bson:"avatar_url,omitempty"`
 }

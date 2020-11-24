@@ -9,6 +9,7 @@ import (
 func setRoutes() {
 	setUserRoutes()
 	setProjectRoutes()
+	setUploadsRoutes()
 }
 
 func setUserRoutes() {
@@ -42,4 +43,10 @@ func setProjectRoutes() {
 	p.DELETE("/:id", projectsController.Delete)
 	p.POST("/:id/comment", projectsController.Comment)
 	p.POST("/:id/contribute", projectsController.Contribute)
+}
+
+func setUploadsRoutes() {
+	uploadsController := controllers.NewUploadsController(*appServer.storage)
+
+	appServer.router.POST("/upload", uploadsController.Upload)
 }
