@@ -1,8 +1,8 @@
 package app
 
 import (
-	"os"
 	"net/http"
+	"os"
 
 	"github.com/jpr98/apis_pf_back/datastore"
 	"github.com/labstack/echo/v4"
@@ -12,6 +12,7 @@ import (
 type server struct {
 	router   *echo.Echo
 	database *datastore.MongoDatastore
+	storage  *datastore.StorageDatastore
 	logger   echo.Logger
 }
 
@@ -53,6 +54,13 @@ func configDatabase() {
 		appServer.logger.Fatal(err)
 	}
 	appServer.database = database
+
+	bucket := "apis-pf-bucket"
+	storage, err := datastore.NewStorageDatastore(bucket, appServer.logger)
+	if err != nil {
+		appServer.logger.Fatal(err)
+	}
+	appServer.storage = storage
 }
 
 func setMiddlewares() {
@@ -61,8 +69,8 @@ func setMiddlewares() {
 	}))
 	appServer.router.Use(middleware.CORSWithConfig(
 		middleware.CORSConfig{
-			AllowOrigins: []string{"http://localhost:3000"},
-			AllowMethods: []string{http.MethodGet, http.MethodPut, http.MethodPost, http.MethodDelete},
+			AllowOrigins:     []string{"http://localhost:3000"},
+			AllowMethods:     []string{http.MethodGet, http.MethodPut, http.MethodPost, http.MethodDelete},
 			AllowCredentials: true,
 		}))
 }
