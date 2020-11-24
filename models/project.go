@@ -9,6 +9,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 // Project represents a project in the system
@@ -18,10 +19,12 @@ type Project struct {
 	Title         string               `json:"title,omitempty" bson:"title,omitempty"`
 	Subtitle      string               `json:"subtitle,omitempty" bson:"subtitle,omitempty"`
 	Description   string               `json:"description,omitempty" bson:"desc,omitempty"`
+	CreatedAt     time.Time            `json:"created_at,omitempty" bson:"created_at,omitempty"`
 	Tags          []string             `json:"tags,omitempty" bson:"tags,omitempty"`
 	Category      string               `json:"category,omitempty" bson:"category,omitempty"`
 	Location      string               `json:"location,omitempty" bson:"location,omitempty"`
 	Votes         []primitive.ObjectID `json:"votes,omitempty" bson:"votes,omitempty"`
+	VotesCount    int                  `json:"votes_count,omitempty" bson:"votes_count,omitempty"`
 	ImageURL      string               `json:"image_url,omitempty" bson:"image,omitempty"`
 	VideoURL      string               `json:"video_url,omitempty" bson:"video,omitempty"`
 	Views         int                  `json:"views,omitempty" bson:"views,omitempty"`
@@ -57,6 +60,8 @@ func (ps *ProjectStore) Create(p Project, ownerID string) (Project, error) {
 
 	p.Owner = oid
 	p.Views = 0
+	p.VotesCount = 0
+	p.CreatedAt = time.Now()
 	result, err := ps.collection.InsertOne(ctx, p)
 	if err != nil {
 		return Project{}, err
@@ -104,16 +109,9 @@ func (ps *ProjectStore) GetByTitle(title string) ([]Project, error) {
 		return nil, err
 	}
 
-	projects := make([]Project, 0)
-	for cursor.Next(ctx) {
-		var project Project
-		err = cursor.Decode(&project)
-		if err != nil {
-			return nil, err
-		}
-		ps.getCommentsAuthors(&project)
-		ps.getContributionsUsers(&project)
-		projects = append(projects, project)
+	projects, err := ps.extractProjectsFromCursor(ctx, cursor)
+	if err != nil {
+		return nil, err
 	}
 
 	cursor.Close(ctx)
@@ -130,16 +128,9 @@ func (ps *ProjectStore) GetByTags(tags []string) ([]Project, error) {
 		return nil, err
 	}
 
-	projects := make([]Project, 0)
-	for cursor.Next(ctx) {
-		var project Project
-		err = cursor.Decode(&project)
-		if err != nil {
-			return nil, err
-		}
-		ps.getCommentsAuthors(&project)
-		ps.getContributionsUsers(&project)
-		projects = append(projects, project)
+	projects, err := ps.extractProjectsFromCursor(ctx, cursor)
+	if err != nil {
+		return nil, err
 	}
 
 	cursor.Close(ctx)
@@ -156,16 +147,43 @@ func (ps *ProjectStore) GetByCategory(category string) ([]Project, error) {
 		return nil, err
 	}
 
-	projects := make([]Project, 0)
-	for cursor.Next(ctx) {
-		var project Project
-		err = cursor.Decode(&project)
-		if err != nil {
-			return nil, err
-		}
-		ps.getCommentsAuthors(&project)
-		ps.getContributionsUsers(&project)
-		projects = append(projects, project)
+	projects, err := ps.extractProjectsFromCursor(ctx, cursor)
+	if err != nil {
+		return nil, err
+	}
+
+	cursor.Close(ctx)
+	return projects, nil
+}
+
+// GetFullSearch looks for projects by title, category and returns them in a specific order
+func (ps *ProjectStore) GetFullSearch(title, category, order string) ([]Project, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	query := bson.M{"$and": bson.A{
+		bson.M{"title": primitive.Regex{Pattern: ".*" + title + ".*", Options: ""}},
+		bson.M{"category": category},
+	}}
+
+	options := &options.FindOptions{}
+	switch order {
+	case "popularity":
+		options.SetSort(bson.M{"votes_count": -1})
+	case "date":
+		options.SetSort(bson.M{"created_at": 1})
+	default:
+		options = nil
+	}
+
+	cursor, err := ps.collection.Find(ctx, query, options)
+	if err != nil {
+		return nil, err
+	}
+
+	projects, err := ps.extractProjectsFromCursor(ctx, cursor)
+	if err != nil {
+		return nil, err
 	}
 
 	cursor.Close(ctx)
@@ -187,16 +205,9 @@ func (ps *ProjectStore) GetByOwnerID(ownerID string) ([]Project, error) {
 		return nil, err
 	}
 
-	projects := make([]Project, 0)
-	for cursor.Next(ctx) {
-		var project Project
-		err = cursor.Decode(&project)
-		if err != nil {
-			return nil, err
-		}
-		ps.getCommentsAuthors(&project)
-		ps.getContributionsUsers(&project)
-		projects = append(projects, project)
+	projects, err := ps.extractProjectsFromCursor(ctx, cursor)
+	if err != nil {
+		return nil, err
 	}
 
 	cursor.Close(ctx)
@@ -219,16 +230,9 @@ func (ps *ProjectStore) GetVotedProjects(userID string) ([]Project, error) {
 		return nil, err
 	}
 
-	projects := make([]Project, 0)
-	for cursor.Next(ctx) {
-		var project Project
-		err = cursor.Decode(&project)
-		if err != nil {
-			return nil, err
-		}
-		ps.getCommentsAuthors(&project)
-		ps.getContributionsUsers(&project)
-		projects = append(projects, project)
+	projects, err := ps.extractProjectsFromCursor(ctx, cursor)
+	if err != nil {
+		return nil, err
 	}
 
 	cursor.Close(ctx)
@@ -251,10 +255,13 @@ func (ps *ProjectStore) Vote(projectID string, userID string, upvote bool) error
 	}
 
 	var updateAction string
+	var incAmount int
 	if upvote {
 		updateAction = "$addToSet"
+		incAmount = 1
 	} else {
 		updateAction = "$pull"
+		incAmount = -1
 	}
 	update := bson.M{updateAction: bson.M{"votes": uid}}
 	result, err := ps.collection.UpdateOne(ctx, bson.M{"_id": pid}, update)
@@ -264,6 +271,13 @@ func (ps *ProjectStore) Vote(projectID string, userID string, upvote bool) error
 
 	if result.MatchedCount == 0 {
 		return errors.New("No project found with given id")
+	}
+
+	if result.ModifiedCount > 0 {
+		_, err := ps.collection.UpdateOne(ctx, bson.M{"_id": pid}, bson.M{"$inc": bson.M{"votes_count": incAmount}})
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -374,6 +388,21 @@ func (ps *ProjectStore) AddContribution(id, userID string, amount float32) error
 	}
 
 	return nil
+}
+
+func (ps *ProjectStore) extractProjectsFromCursor(ctx context.Context, cursor *mongo.Cursor) ([]Project, error) {
+	projects := make([]Project, 0)
+	for cursor.Next(ctx) {
+		var project Project
+		err := cursor.Decode(&project)
+		if err != nil {
+			return nil, err
+		}
+		ps.getCommentsAuthors(&project)
+		ps.getContributionsUsers(&project)
+		projects = append(projects, project)
+	}
+	return projects, nil
 }
 
 func (ps *ProjectStore) getCommentsAuthors(project *Project) {
