@@ -417,9 +417,9 @@ func (ps *ProjectStore) getCommentsAuthors(project *Project) {
 		userStore := NewUserStore(ps.database)
 		user, err := userStore.GetByID(comment.Author.ID.Hex())
 		if err != nil {
-			project.Comments[index].Author = CommentAuthor{user.ID, "Eliminado", "", ""}
+			project.Comments[index].Author = CommentAuthor{user.ID, "Eliminado", ""}
 		}
-		project.Comments[index].Author = CommentAuthor{user.ID, user.Name, user.Lastname, user.Avatar}
+		project.Comments[index].Author = CommentAuthor{user.ID, user.Name, user.Avatar}
 	}
 }
 
@@ -428,8 +428,8 @@ func (ps *ProjectStore) getContributionsUsers(project *Project) {
 		userStore := NewUserStore(ps.database)
 		user, err := userStore.GetByID(comment.User.ID.Hex())
 		if err != nil {
-			project.Contributions[index].User = ContributionUser{user.ID, "Eliminado", "", ""}
+			project.Contributions[index].User = ContributionUser{user.ID, "Eliminado", ""}
 		}
-		project.Contributions[index].User = ContributionUser{user.ID, user.Name, user.Lastname, user.Avatar}
+		project.Contributions[index].User = ContributionUser{user.ID, user.Name, user.Avatar}
 	}
 }
