@@ -76,7 +76,6 @@ func (u *Users) Update(c echo.Context) error {
 	}
 
 	id := c.Param("id")
-
 	if id != getTokenStringClaimByKey(c, "id") {
 		return c.String(http.StatusForbidden, "You can only update your own info")
 	}

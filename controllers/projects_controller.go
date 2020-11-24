@@ -37,6 +37,30 @@ func (p *Projects) Create(c echo.Context) error {
 	return c.JSON(http.StatusCreated, createdProject)
 }
 
+// Update updates a project
+func (p *Projects) Update(c echo.Context) error {
+	ep := new(models.EditProject)
+	if err := c.Bind(ep); err != nil {
+		return c.String(http.StatusBadRequest, "Can't bind body to json")
+	}
+
+	id := c.Param("id")
+	project, err := p.projectStore.GetByID(id)
+	if err != nil {
+		return c.String(http.StatusNotFound, "No projects with matching id")
+	}
+
+	if getTokenStringClaimByKey(c, "id") != project.Owner.Hex() {
+		return c.String(http.StatusForbidden, "You can only update projects you own")
+	}
+
+	if err := p.projectStore.Update(project, *ep); err != nil {
+		return c.String(http.StatusInternalServerError, err.Error())
+	}
+
+	return c.JSON(http.StatusOK, "Updated")
+}
+
 // GetByID handles looking for a project with a given id
 func (p *Projects) GetByID(c echo.Context) error {
 	id := c.Param("id")
