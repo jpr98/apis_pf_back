@@ -13,21 +13,21 @@ import (
 
 // Project represents a project in the system
 type Project struct {
-	ID          primitive.ObjectID   `json:"id,omitempty" bson:"_id,omitempty"`
-	Owner       primitive.ObjectID   `json:"owner,omitempty" bson:"owner,omitempty"`
-	Title       string               `json:"title,omitempty" bson:"title,omitempty"`
-	Subtitle    string               `json:"subtitle,omitempty" bson:"subtitle,omitempty"`
-	Description string               `json:"description,omitempty" bson:"desc,omitempty"`
-	Tags        []string             `json:"tags,omitempty" bson:"tags,omitempty"`
-	Category    string               `json:"category,omitempty" bson:"category,omitempty"`
-	Location    string               `json:"location,omitempty" bson:"location,omitempty"`
-	Votes       []primitive.ObjectID `json:"votes,omitempty" bson:"votes,omitempty"`
-	ImageURL    string               `json:"image_url,omitempty" bson:"image,omitempty"`
-	VideoURL    string               `json:"video_url,omitempty" bson:"video,omitempty"`
-	Views       int                  `json:"views,omitempty" bson:"views,omitempty"`
-	Comments    []Comment            `json:"comments,omitempty" bson:"comments,omitempty"`
+	ID            primitive.ObjectID   `json:"id,omitempty" bson:"_id,omitempty"`
+	Owner         primitive.ObjectID   `json:"owner,omitempty" bson:"owner,omitempty"`
+	Title         string               `json:"title,omitempty" bson:"title,omitempty"`
+	Subtitle      string               `json:"subtitle,omitempty" bson:"subtitle,omitempty"`
+	Description   string               `json:"description,omitempty" bson:"desc,omitempty"`
+	Tags          []string             `json:"tags,omitempty" bson:"tags,omitempty"`
+	Category      string               `json:"category,omitempty" bson:"category,omitempty"`
+	Location      string               `json:"location,omitempty" bson:"location,omitempty"`
+	Votes         []primitive.ObjectID `json:"votes,omitempty" bson:"votes,omitempty"`
+	ImageURL      string               `json:"image_url,omitempty" bson:"image,omitempty"`
+	VideoURL      string               `json:"video_url,omitempty" bson:"video,omitempty"`
+	Views         int                  `json:"views,omitempty" bson:"views,omitempty"`
+	Comments      []Comment            `json:"comments,omitempty" bson:"comments,omitempty"`
+	Contributions []Contribution       `json:"contributions,omitempty" bson:"contributions,omitempty"`
 	// duration....
-	// Contributions []Contribution `json:"contributions,omitempty" bson:"contributions,omitempty"`
 }
 
 // ProjectStore contains all the CRUD operations of Project
@@ -88,6 +88,7 @@ func (ps *ProjectStore) GetByID(id string) (Project, error) {
 	}
 
 	ps.getCommentsAuthors(&project)
+	ps.getContributionsUsers(&project)
 
 	return project, nil
 }
@@ -111,6 +112,7 @@ func (ps *ProjectStore) GetByTitle(title string) ([]Project, error) {
 			return nil, err
 		}
 		ps.getCommentsAuthors(&project)
+		ps.getContributionsUsers(&project)
 		projects = append(projects, project)
 	}
 
@@ -136,6 +138,7 @@ func (ps *ProjectStore) GetByTags(tags []string) ([]Project, error) {
 			return nil, err
 		}
 		ps.getCommentsAuthors(&project)
+		ps.getContributionsUsers(&project)
 		projects = append(projects, project)
 	}
 
@@ -161,6 +164,7 @@ func (ps *ProjectStore) GetByCategory(category string) ([]Project, error) {
 			return nil, err
 		}
 		ps.getCommentsAuthors(&project)
+		ps.getContributionsUsers(&project)
 		projects = append(projects, project)
 	}
 
@@ -191,6 +195,7 @@ func (ps *ProjectStore) GetByOwnerID(ownerID string) ([]Project, error) {
 			return nil, err
 		}
 		ps.getCommentsAuthors(&project)
+		ps.getContributionsUsers(&project)
 		projects = append(projects, project)
 	}
 
@@ -222,6 +227,7 @@ func (ps *ProjectStore) GetVotedProjects(userID string) ([]Project, error) {
 			return nil, err
 		}
 		ps.getCommentsAuthors(&project)
+		ps.getContributionsUsers(&project)
 		projects = append(projects, project)
 	}
 
@@ -339,6 +345,37 @@ func (ps *ProjectStore) AddComment(id, authorID, text string) error {
 	return nil
 }
 
+// AddContribution appends a contribution to a project
+func (ps *ProjectStore) AddContribution(id, userID string, amount float32) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	pid, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+
+	uid, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return err
+	}
+
+	user := ContributionUser{ID: uid}
+	contribution := Contribution{primitive.NewObjectID(), user, amount, time.Now()}
+
+	update := bson.M{"$push": bson.M{"contributions": contribution}}
+	result, err := ps.collection.UpdateOne(ctx, bson.M{"_id": pid}, update)
+	if err != nil {
+		return err
+	}
+
+	if result.MatchedCount == 0 {
+		return errors.New("No project found with given id")
+	}
+
+	return nil
+}
+
 func (ps *ProjectStore) getCommentsAuthors(project *Project) {
 	for index, comment := range project.Comments {
 		userStore := NewUserStore(ps.database)
@@ -346,6 +383,17 @@ func (ps *ProjectStore) getCommentsAuthors(project *Project) {
 		if err != nil {
 			project.Comments[index].Author = CommentAuthor{user.ID, "Eliminado", "", ""}
 		}
-		project.Comments[index].Author = CommentAuthor{user.ID, user.Name, user.Lastname, user.Email} // TODO: Change to avatar
+		project.Comments[index].Author = CommentAuthor{user.ID, user.Name, user.Lastname, user.Avatar}
+	}
+}
+
+func (ps *ProjectStore) getContributionsUsers(project *Project) {
+	for index, comment := range project.Contributions {
+		userStore := NewUserStore(ps.database)
+		user, err := userStore.GetByID(comment.User.ID.Hex())
+		if err != nil {
+			project.Contributions[index].User = ContributionUser{user.ID, "Eliminado", "", ""}
+		}
+		project.Contributions[index].User = ContributionUser{user.ID, user.Name, user.Lastname, user.Avatar}
 	}
 }
