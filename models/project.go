@@ -30,7 +30,7 @@ type Project struct {
 	Views         int                  `json:"views,omitempty" bson:"views,omitempty"`
 	Comments      []Comment            `json:"comments,omitempty" bson:"comments,omitempty"`
 	Contributions []Contribution       `json:"contributions,omitempty" bson:"contributions,omitempty"`
-	// duration....
+	Duration      int                  `json:"duration,omitempty" bson:"duration,omitempty"`
 }
 
 // ProjectStore contains all the CRUD operations of Project
@@ -74,6 +74,46 @@ func (ps *ProjectStore) Create(p Project, ownerID string) (Project, error) {
 	p.ID = generatedID
 
 	return p, nil
+}
+
+// EditProject helps to model de edit project data
+type EditProject struct {
+	Title       string   `json:"title,omitempty"`
+	Subtitle    string   `json:"subtitle,omitempty"`
+	Location    string   `json:"location,omitempty"`
+	Category    string   `json:"category,omitempty"`
+	Tags        []string `json:"tags,omitempty"`
+	ImageURL    string   `json:"image_url,omitempty"`
+	VideoURL    string   `json:"video_url,omitempty"`
+	Duration    int      `json:"duration,omitempty"`
+	Description string   `json:"description,omitempty"`
+}
+
+// Update edits a project's info
+func (ps *ProjectStore) Update(project Project, editProject EditProject) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	project.Title = editProject.Title
+	project.Subtitle = editProject.Subtitle
+	project.Location = editProject.Location
+	project.Category = editProject.Category
+	project.Tags = editProject.Tags
+	project.ImageURL = editProject.ImageURL
+	project.VideoURL = editProject.VideoURL
+	project.Duration = editProject.Duration
+	project.Description = editProject.Description
+
+	result, err := ps.collection.ReplaceOne(ctx, bson.M{"_id": project.ID}, project)
+	if err != nil {
+		return err
+	}
+
+	if result.MatchedCount == 0 {
+		return errors.New("No projects with given id")
+	}
+
+	return nil
 }
 
 // GetByID finds a project with a given id
