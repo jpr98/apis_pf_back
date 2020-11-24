@@ -34,6 +34,7 @@ func setProjectRoutes() {
 	appServer.router.POST("/projects/search", projectsController.SearchProject)
 	appServer.router.GET("/projects/owned/:userId", projectsController.GetByOwner)
 	appServer.router.GET("/projects/voted/:userId", projectsController.GetVotedFor)
+	appServer.router.GET("/projects/contributed/:userId", projectsController.GetContributedTo)
 	appServer.router.POST("/projects/:id/metrics/view", projectsController.View)
 
 	p := appServer.router.Group("/projects")
