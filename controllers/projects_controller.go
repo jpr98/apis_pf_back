@@ -145,6 +145,21 @@ func (p *Projects) GetVotedFor(c echo.Context) error {
 	return c.JSON(http.StatusOK, projects)
 }
 
+// GetContributedTo returns the projects contributed to by a user
+func (p *Projects) GetContributedTo(c echo.Context) error {
+	id := c.Param("userId")
+	if id == "" {
+		return c.String(http.StatusBadRequest, "No user id")
+	}
+
+	projects, err := p.projectStore.GetContributedProjects(id)
+	if err != nil {
+		return c.String(http.StatusInternalServerError, err.Error())
+	}
+
+	return c.JSON(http.StatusOK, projects)
+}
+
 // VoteForProject handles a user voting or unvoting a project
 func (p *Projects) VoteForProject(c echo.Context) error {
 	id := c.Param("id")

@@ -286,6 +286,31 @@ func (ps *ProjectStore) GetVotedProjects(userID string) ([]Project, error) {
 	return projects, nil
 }
 
+// GetContributedProjects returns the projects that a user has contributed to
+func (ps *ProjectStore) GetContributedProjects(userID string) ([]Project, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	uid, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	query := bson.M{"contributions.user._id": uid}
+	cursor, err := ps.collection.Find(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+
+	projects, err := ps.extractProjectsFromCursor(ctx, cursor)
+	if err != nil {
+		return nil, err
+	}
+
+	cursor.Close(ctx)
+	return projects, nil
+}
+
 // Vote appends or removes a user to the list of votes of a project
 func (ps *ProjectStore) Vote(projectID string, userID string, upvote bool) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
