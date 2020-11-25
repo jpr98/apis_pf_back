@@ -77,3 +77,49 @@ func TestContribute(t *testing.T) {
 		t.Error("Text should be set in comment")
 	}
 }
+
+func TestVote(t *testing.T) {
+	author := CommentAuthor{primitive.NewObjectID(), "Name", "images.google.com/8373434.png"}
+	if author.Name != "Name" {
+		t.Error("Name should be the same in vote")
+	}
+
+	comment := Comment{primitive.NewObjectID(), author, time.Now(), "Content"}
+
+	if comment.Author != author {
+		t.Error("Author should be set in comment")
+	}
+
+	if comment.Text != "Content" {
+		t.Error("Text should be set in comment")
+	}
+}
+
+func TestFollow(t *testing.T) {
+	author := CommentAuthor{primitive.NewObjectID(), "Test name", "images.google.com/8373434.png"}
+	if author.Avatar != "images.google.com/8373434.png" {
+		t.Error("Avatar should be the same")
+	}
+	comment := Comment{primitive.NewObjectID(), author, time.Now(), "Content"}
+
+	if comment.Author != author {
+		t.Error("Author should be set in comment")
+	}
+
+	if comment.Text != "Content" {
+		t.Error("Text should be set in comment")
+	}
+}
+
+func TestCreate(t *testing.T) {
+	author := CommentAuthor{primitive.NewObjectID(), "Name", "avatar.com/url"}
+	comment := Comment{primitive.NewObjectID(), author, time.Now(), "Content"}
+
+	if comment.Author != author {
+		t.Error("Author should be set in comment")
+	}
+
+	if comment.Text != "Content" {
+		t.Error("Text should be set in comment")
+	}
+}
