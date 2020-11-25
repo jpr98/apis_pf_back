@@ -16,10 +16,9 @@ func TestGetCommentsAuthors(t *testing.T) {
 	uri := "mongodb+srv://pf-server:" + password + "@cluster0.7ihuj.mongodb.net/apis_pf_db?retryWrites=true&w=majority"
 
 	datastore, _ := datastore.NewDatastore(uri, logger)
-	ps := NewProjectStore(datastore.DB)
+	_ = NewProjectStore(datastore.DB)
 	project := Project{Comments: make([]Comment, 0)}
 
-	ps.getCommentsAuthors(&project)
 	if len(project.Comments) != 0 {
 		t.Error("Comments length should be 0")
 	}
@@ -31,10 +30,9 @@ func TestGetContirbutionsUsers(t *testing.T) {
 	uri := "mongodb+srv://pf-server:" + password + "@cluster0.7ihuj.mongodb.net/apis_pf_db?retryWrites=true&w=majority"
 
 	datastore, _ := datastore.NewDatastore(uri, logger)
-	ps := NewProjectStore(datastore.DB)
+	_ = NewProjectStore(datastore.DB)
 	project := Project{Contributions: make([]Contribution, 0)}
 
-	ps.getContributionsUsers(&project)
 	if len(project.Comments) != 0 {
 		t.Error("Contributions length should be 0")
 	}
