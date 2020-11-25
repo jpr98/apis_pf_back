@@ -17,7 +17,7 @@ func TestGetCommentsAuthors(t *testing.T) {
 
 	datastore, _ := datastore.NewDatastore(uri, logger)
 	ps := NewProjectStore(datastore.DB)
-	project := Project{}
+	project := Project{Comments: make([]Comment, 0)}
 
 	ps.getCommentsAuthors(&project)
 	if len(project.Comments) != 0 {
@@ -32,7 +32,7 @@ func TestGetContirbutionsUsers(t *testing.T) {
 
 	datastore, _ := datastore.NewDatastore(uri, logger)
 	ps := NewProjectStore(datastore.DB)
-	project := Project{}
+	project := Project{Contributions: make([]Contribution, 0)}
 
 	ps.getContributionsUsers(&project)
 	if len(project.Comments) != 0 {

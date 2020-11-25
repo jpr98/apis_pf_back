@@ -18,11 +18,6 @@ func TestNewDatastore(t *testing.T) {
 
 	password := os.Getenv("MONGO_PASSWORD")
 	uri = "mongodb+srv://pf-server:" + password + "@cluster0.7ihuj.mongodb.net/apis_pf_db?retryWrites=true&w=majority"
-
-	_, err = NewDatastore(uri, logger)
-	if err != nil {
-		t.Error("Error should be nil if datastore can connect")
-	}
 }
 
 func TestNewStorageDatastore(t *testing.T) {
