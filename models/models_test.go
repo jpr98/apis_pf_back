@@ -15,8 +15,7 @@ func TestGetCommentsAuthors(t *testing.T) {
 	password := os.Getenv("MONGO_PASSWORD")
 	uri := "mongodb+srv://pf-server:" + password + "@cluster0.7ihuj.mongodb.net/apis_pf_db?retryWrites=true&w=majority"
 
-	datastore, _ := datastore.NewDatastore(uri, logger)
-	_ = NewProjectStore(datastore.DB)
+	_, _ = datastore.NewDatastore(uri, logger)
 	project := Project{Comments: make([]Comment, 0)}
 
 	if len(project.Comments) != 0 {
@@ -29,8 +28,7 @@ func TestGetContirbutionsUsers(t *testing.T) {
 	password := os.Getenv("MONGO_PASSWORD")
 	uri := "mongodb+srv://pf-server:" + password + "@cluster0.7ihuj.mongodb.net/apis_pf_db?retryWrites=true&w=majority"
 
-	datastore, _ := datastore.NewDatastore(uri, logger)
-	_ = NewProjectStore(datastore.DB)
+	_, _ = datastore.NewDatastore(uri, logger)
 	project := Project{Contributions: make([]Contribution, 0)}
 
 	if len(project.Comments) != 0 {
